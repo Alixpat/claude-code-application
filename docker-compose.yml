@@ -1,0 +1,11 @@
+services:
+  myapp:
+    build:
+      context: .
+      args:
+        DOCKER_REGISTRY: ${DOCKER_REGISTRY}
+        PIP_INDEX_URL: ${PIP_INDEX_URL}
+    container_name: myapp
+    ports:
+      - "1000:1000"
+    restart: unless-stopped
