@@ -3,6 +3,10 @@
   become: yes
   gather_facts: yes
 
+  vars:
+    deploy_path: "{{ lookup('env', 'DEPLOY_PATH') | default('/opt/myapp', true) }}"
+    docker_registry: "{{ lookup('env', 'DOCKER_REGISTRY') }}"
+
   roles:
     - role: deploy
       tags:

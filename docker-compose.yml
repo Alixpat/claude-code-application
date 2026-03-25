@@ -1,0 +1,10 @@
+services:
+  myapp:
+    build:
+      context: .
+      args:
+        DOCKER_REGISTRY: ${DOCKER_REGISTRY}
+    container_name: myapp
+    ports:
+      - "1000:1000"
+    restart: unless-stopped
