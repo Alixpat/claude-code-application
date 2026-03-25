@@ -1,0 +1,26 @@
+# .gitlab-ci.yml — Déploiement sur VM via Ansible
+# Déclenché à chaque push sur main.
+# Toute la configuration est dans les variables CI/CD GitLab.
+
+stages:
+  - deploy
+
+deploy:
+  image: ${ANSIBLE_IMAGE}
+  stage: deploy
+  tags:
+    - ${RUNNER_TAG}
+  before_script:
+    - mkdir -p ~/.ssh/multiplex && chmod 700 ~/.ssh
+    - echo ${SSH_PRIVATE_KEY} | base64 -d > ~/.ssh/id_ed25519
+    - chmod 600 ~/.ssh/id_ed25519
+    - cp ${SSH_CONFIG} ~/.ssh/config
+    - chmod 600 ~/.ssh/config
+  script:
+    - echo ${VAULT_PASS} > .vault_pass.txt
+    - ansible-playbook -i ${INVENTORY} deploy.yaml
+  after_script:
+    - rm -f .vault_pass.txt ~/.ssh/id_ed25519 ~/.ssh/config
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main" && $CI_PIPELINE_SOURCE == "push"
+    - if: $CI_PIPELINE_SOURCE == "web"

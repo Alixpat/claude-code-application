@@ -1,0 +1,10 @@
+---
+- name: Créer un fichier de test pour valider le déploiement
+  ansible.builtin.file:
+    path: /tmp/deploy-{{ ansible_date_time.iso8601_basic_short }}
+    state: touch
+    mode: "0644"
+
+- name: Afficher confirmation
+  ansible.builtin.debug:
+    msg: "Fichier /tmp/deploy-{{ ansible_date_time.iso8601_basic_short }} créé sur {{ inventory_hostname }}"
