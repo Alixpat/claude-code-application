@@ -9,7 +9,6 @@ COPY app/requirements.txt .
 RUN pip install --no-cache-dir \
     --index-url "${PIP_INDEX_URL}" \
     --trusted-host "$(echo ${PIP_INDEX_URL} | sed 's|https\?://\([^/]*\).*|\1|')" \
-    --cert /etc/ssl/certs/ca-certificates.crt \
     -r requirements.txt
 
 COPY app/ .
