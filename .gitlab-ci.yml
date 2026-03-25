@@ -12,6 +12,7 @@ deploy:
     - ${RUNNER_TAG}
   variables:
     ANSIBLE_HOST_KEY_CHECKING: "false"
+    ANSIBLE_CONFIG: "${CI_PROJECT_DIR}/.deploy/ansible.cfg"
   before_script:
     - chmod o-w ${CI_PROJECT_DIR}
     - mkdir -p ~/.ssh/multiplex && chmod 700 ~/.ssh
@@ -20,7 +21,7 @@ deploy:
     - cp ${SSH_CONFIG} ~/.ssh/config
     - chmod 600 ~/.ssh/config
   script:
-    - ansible-playbook -i ${INVENTORY} deploy.yaml
+    - ansible-playbook -i ${INVENTORY} .deploy/deploy.yaml
   after_script:
     - rm -f ~/.ssh/id_ed25519 ~/.ssh/config
   rules:

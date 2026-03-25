@@ -1,26 +1,10 @@
-# Deploy Playbook
+# Deploy
 
 Déploie l'application sur une VM via Ansible, déclenché automatiquement à chaque push sur `main`.
 
-Le code est hébergé sur GitHub et synchronisé vers un GitLab interne. Aucune information relative à l'environnement interne n'est présente dans ce dépôt — tout est dans les variables CI/CD GitLab.
-
-## Structure
-
-```
-.
-├── .gitlab-ci.yml
-├── .gitignore
-├── ansible.cfg
-├── deploy.yaml
-└── roles/
-    └── deploy/
-        └── tasks/
-            └── main.yaml
-```
-
 ## Variables CI/CD à créer sur le GitLab interne
 
-Settings > CI/CD > Variables du dépôt **miroir sur Gitlab interne** :
+Settings > CI/CD > Variables du dépôt **miroir sur GitLab interne** :
 
 | Variable | Type | Masked | Protected | Valeur |
 |---|---|---|---|---|
