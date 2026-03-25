@@ -6,6 +6,7 @@
   vars:
     deploy_path: "{{ lookup('env', 'DEPLOY_PATH') | default('/opt/myapp', true) }}"
     docker_registry: "{{ lookup('env', 'DOCKER_REGISTRY') }}"
+    pip_index_url: "{{ lookup('env', 'PIP_INDEX_URL') }}"
 
   roles:
     - role: deploy

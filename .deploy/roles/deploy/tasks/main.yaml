@@ -22,7 +22,9 @@
 
 - name: Créer le fichier .env pour docker compose
   ansible.builtin.copy:
-    content: "DOCKER_REGISTRY={{ docker_registry }}"
+    content: |
+      DOCKER_REGISTRY={{ docker_registry }}
+      PIP_INDEX_URL={{ pip_index_url }}
     dest: "{{ deploy_path }}/.env"
     mode: "0600"
 

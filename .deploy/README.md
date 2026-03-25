@@ -9,7 +9,7 @@ VM cible
 └── ${DEPLOY_PATH}/        (défaut : /opt/myapp)
     ├── Dockerfile
     ├── docker-compose.yml
-    ├── .env               (DOCKER_REGISTRY)
+    ├── .env               (DOCKER_REGISTRY, PIP_INDEX_URL)
     └── app/
         ├── main.py
         └── requirements.txt
@@ -17,7 +17,7 @@ VM cible
 
 Le playbook Ansible :
 1. Copie les fichiers sources sur la VM
-2. Crée un `.env` avec l'URL du registry Docker interne
+2. Crée un `.env` avec l'URL du registry Docker interne et du miroir PyPI
 3. Lance `docker compose up -d --build --force-recreate`
 
 ## Variables CI/CD à créer sur le GitLab interne
@@ -32,6 +32,7 @@ Settings > CI/CD > Variables du dépôt **miroir sur GitLab interne** :
 | `SSH_CONFIG` | File | non | oui | Fichier SSH config |
 | `INVENTORY` | File | non | oui | Fichier inventory Ansible |
 | `DOCKER_REGISTRY` | Variable | non | non | URL du registry Docker interne (ex : `registry.internal.example.com`) |
+| `PIP_INDEX_URL` | Variable | non | non | URL du miroir PyPI interne (ex : `https://nexus.internal.example.com/repository/pypi/simple`) |
 | `DEPLOY_PATH` | Variable | non | non | Chemin de déploiement sur la VM (ex : `/opt/myapp`) |
 
 ## Déclenchement
