@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="fr" data-fr-scheme="system">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Gestion Budgétaire{% endblock %}</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@gouvfr/dsfr@1.12.1/dist/dsfr.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@gouvfr/dsfr@1.12.1/dist/utility/icons/icons.min.css">
+</head>
+<body>
+    <header role="banner" class="fr-header">
+        <div class="fr-header__body">
+            <div class="fr-container">
+                <div class="fr-header__body-row">
+                    <div class="fr-header__brand fr-enlarge-link">
+                        <div class="fr-header__brand-top">
+                            <div class="fr-header__logo">
+                                <p class="fr-logo">
+                                    République<br>Française
+                                </p>
+                            </div>
+                        </div>
+                        <div class="fr-header__service">
+                            <a href="/" title="Accueil - Gestion Budgétaire">
+                                <p class="fr-header__service-title">Gestion Budgétaire</p>
+                            </a>
+                            <p class="fr-header__service-tagline">Application de gestion des demandes de budget</p>
+                        </div>
+                    </div>
+                    {% block header_tools %}{% endblock %}
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main role="main" id="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="fr-footer" role="contentinfo">
+        <div class="fr-container">
+            <div class="fr-footer__body">
+                <div class="fr-footer__brand fr-enlarge-link">
+                    <p class="fr-logo">
+                        République<br>Française
+                    </p>
+                </div>
+                <div class="fr-footer__content">
+                    <p class="fr-footer__content-desc">Application de gestion budgétaire des projets</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@gouvfr/dsfr@1.12.1/dist/dsfr.module.min.js" type="module"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@gouvfr/dsfr@1.12.1/dist/dsfr.nomodule.min.js" nomodule></script>
+</body>
+</html>

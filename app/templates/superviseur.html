@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+{% block title %}Tableau de bord - {{ utilisateur.nom }}{% endblock %}
+
+{% block header_tools %}
+<div class="fr-header__tools">
+    <div class="fr-header__tools-links">
+        <ul class="fr-btns-group">
+            <li>
+                <span class="fr-btn fr-btn--tertiary-no-outline" disabled>{{ utilisateur.nom }} (Superviseur)</span>
+            </li>
+            <li>
+                <a class="fr-btn fr-btn--tertiary-no-outline" href="/">Déconnexion</a>
+            </li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="fr-container fr-py-6w">
+    <h1 class="fr-mb-4w">Vision consolidée des demandes de budget</h1>
+
+    <!-- Tuiles de statistiques -->
+    <div class="fr-grid-row fr-grid-row--gutters fr-mb-6w">
+        <div class="fr-col-12 fr-col-md-3">
+            <div class="fr-tile fr-tile--horizontal">
+                <div class="fr-tile__body">
+                    <div class="fr-tile__content">
+                        <h3 class="fr-tile__title">{{ stats.total }}</h3>
+                        <p class="fr-tile__detail">Demandes totales</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="fr-col-12 fr-col-md-3">
+            <div class="fr-tile fr-tile--horizontal">
+                <div class="fr-tile__body">
+                    <div class="fr-tile__content">
+                        <h3 class="fr-tile__title">{{ "{:,.2f}".format(stats.montant_total) }} €</h3>
+                        <p class="fr-tile__detail">Montant total demandé</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="fr-col-12 fr-col-md-3">
+            <div class="fr-tile fr-tile--horizontal">
+                <div class="fr-tile__body">
+                    <div class="fr-tile__content">
+                        <h3 class="fr-tile__title">{{ "{:,.2f}".format(stats.montant_approuve) }} €</h3>
+                        <p class="fr-tile__detail">Montant approuvé</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="fr-col-12 fr-col-md-3">
+            <div class="fr-tile fr-tile--horizontal">
+                <div class="fr-tile__body">
+                    <div class="fr-tile__content">
+                        <h3 class="fr-tile__title">{{ stats.en_attente }}</h3>
+                        <p class="fr-tile__detail">En attente de décision</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Répartition par statut -->
+    <div class="fr-grid-row fr-grid-row--gutters fr-mb-4w">
+        <div class="fr-col-12 fr-col-md-4">
+            <div class="fr-callout fr-callout--blue-ecume">
+                <h3 class="fr-callout__title">{{ stats.en_attente }} en attente</h3>
+                <p class="fr-callout__text">{{ "{:,.2f}".format(stats.montant_en_attente) }} € en attente de validation</p>
+            </div>
+        </div>
+        <div class="fr-col-12 fr-col-md-4">
+            <div class="fr-callout">
+                <h3 class="fr-callout__title">{{ stats.approuve }} approuvée(s)</h3>
+                <p class="fr-callout__text">{{ "{:,.2f}".format(stats.montant_approuve) }} € de budget approuvé</p>
+            </div>
+        </div>
+        <div class="fr-col-12 fr-col-md-4">
+            <div class="fr-callout">
+                <h3 class="fr-callout__title">{{ stats.refuse }} refusée(s)</h3>
+                <p class="fr-callout__text">Demandes refusées</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tableau des demandes -->
+    <h2 class="fr-mb-2w">Détail des demandes</h2>
+    {% if demandes %}
+    <div class="fr-table">
+        <table>
+            <thead>
+                <tr>
+                    <th scope="col">Demandeur</th>
+                    <th scope="col">Application</th>
+                    <th scope="col">Montant</th>
+                    <th scope="col">Justification</th>
+                    <th scope="col">Pièce jointe</th>
+                    <th scope="col">Statut</th>
+                    <th scope="col">Date</th>
+                    <th scope="col">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for d in demandes %}
+                <tr>
+                    <td>{{ d.demandeur_nom }}</td>
+                    <td>{{ d.nom_application }}</td>
+                    <td>{{ "{:,.2f}".format(d.montant) }} €</td>
+                    <td>{{ d.justification[:60] }}{% if d.justification and d.justification|length > 60 %}…{% endif %}</td>
+                    <td>
+                        {% if d.piece_jointe_path %}
+                        <a href="/uploads/{{ d.piece_jointe_path }}" target="_blank" class="fr-link">
+                            {{ d.piece_jointe_nom }}
+                        </a>
+                        {% else %}
+                        —
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if d.statut == 'en_attente' %}
+                        <p class="fr-badge fr-badge--info">En attente</p>
+                        {% elif d.statut == 'approuve' %}
+                        <p class="fr-badge fr-badge--success">Approuvé</p>
+                        {% else %}
+                        <p class="fr-badge fr-badge--error">Refusé</p>
+                        {% endif %}
+                    </td>
+                    <td>{{ d.created_at.strftime('%d/%m/%Y') }}</td>
+                    <td>
+                        {% if d.statut == 'en_attente' %}
+                        <form method="post" action="/superviseur/{{ utilisateur.id }}/decision/{{ d.id }}" style="display:inline;">
+                            <input type="hidden" name="statut" value="approuve">
+                            <button type="submit" class="fr-btn fr-btn--sm fr-btn--secondary">Approuver</button>
+                        </form>
+                        <form method="post" action="/superviseur/{{ utilisateur.id }}/decision/{{ d.id }}" style="display:inline; margin-left:0.5rem;">
+                            <input type="hidden" name="statut" value="refuse">
+                            <button type="submit" class="fr-btn fr-btn--sm fr-btn--tertiary">Refuser</button>
+                        </form>
+                        {% else %}
+                        —
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="fr-callout">
+        <h3 class="fr-callout__title">Aucune demande</h3>
+        <p class="fr-callout__text">Aucune demande de budget n'a été soumise pour le moment.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

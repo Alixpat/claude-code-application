@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}Nouvelle demande - {{ utilisateur.nom }}{% endblock %}
+
+{% block header_tools %}
+<div class="fr-header__tools">
+    <div class="fr-header__tools-links">
+        <ul class="fr-btns-group">
+            <li>
+                <span class="fr-btn fr-btn--tertiary-no-outline" disabled>{{ utilisateur.nom }}</span>
+            </li>
+            <li>
+                <a class="fr-btn fr-btn--tertiary-no-outline" href="/">Déconnexion</a>
+            </li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="fr-container fr-py-6w">
+    <div class="fr-grid-row fr-grid-row--center">
+        <div class="fr-col-12 fr-col-md-8">
+            <a class="fr-link fr-link--icon-left fr-icon-arrow-left-line fr-mb-3w" href="/chef-projet/{{ utilisateur.id }}">
+                Retour à mes demandes
+            </a>
+
+            <h1 class="fr-mb-4w">Nouvelle demande de budget</h1>
+
+            <form method="post" enctype="multipart/form-data">
+                <div class="fr-input-group fr-mb-3w">
+                    <label class="fr-label" for="nom_application">
+                        Nom de l'application
+                        <span class="fr-hint-text">Nom du projet ou de l'application concernée</span>
+                    </label>
+                    <input class="fr-input" type="text" id="nom_application" name="nom_application" required>
+                </div>
+
+                <div class="fr-input-group fr-mb-3w">
+                    <label class="fr-label" for="montant">
+                        Montant demandé (€)
+                        <span class="fr-hint-text">Montant en euros</span>
+                    </label>
+                    <input class="fr-input" type="number" id="montant" name="montant" min="0" step="0.01" required>
+                </div>
+
+                <div class="fr-input-group fr-mb-3w">
+                    <label class="fr-label" for="justification">
+                        Justification
+                        <span class="fr-hint-text">Décrivez les raisons de cette demande de budget</span>
+                    </label>
+                    <textarea class="fr-input" id="justification" name="justification" rows="6"></textarea>
+                </div>
+
+                <div class="fr-upload-group fr-mb-4w">
+                    <label class="fr-label" for="piece_jointe">
+                        Pièce jointe (optionnel)
+                        <span class="fr-hint-text">Formats acceptés : PDF, DOC, DOCX, XLS, XLSX, PNG, JPG. Taille max : 10 Mo</span>
+                    </label>
+                    <input class="fr-upload" type="file" id="piece_jointe" name="piece_jointe">
+                </div>
+
+                <div class="fr-btns-group fr-btns-group--inline">
+                    <button class="fr-btn" type="submit">
+                        Soumettre la demande
+                    </button>
+                    <a class="fr-btn fr-btn--secondary" href="/chef-projet/{{ utilisateur.id }}">
+                        Annuler
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
