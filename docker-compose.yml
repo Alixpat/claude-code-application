@@ -14,6 +14,7 @@ services:
         condition: service_healthy
     environment:
       - DATABASE_URL=postgresql://myapp:myapp@db:5432/myapp
+      - SECRET_KEY=changez-moi-en-production-avec-une-valeur-aleatoire
 
   db:
     image: ${DOCKER_REGISTRY:-docker.io}/postgres:16-alpine

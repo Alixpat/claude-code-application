@@ -223,6 +223,18 @@ def connexion(request: Request, email: str = Form(...), mot_de_passe: str = Form
         ), {"email": email, "mdp": hacher_mot_de_passe(mot_de_passe)})
         utilisateur = result.mappings().first()
 
+        # Fallback : tentative avec l'ancien hash SHA-256 et migration automatique
+        if not utilisateur:
+            ancien_mdp = hashlib.sha256(mot_de_passe.encode()).hexdigest()
+            result = conn.execute(text(
+                "SELECT * FROM utilisateurs WHERE email = :email AND mot_de_passe = :mdp"
+            ), {"email": email, "mdp": ancien_mdp})
+            utilisateur = result.mappings().first()
+            if utilisateur:
+                conn.execute(text(
+                    "UPDATE utilisateurs SET mot_de_passe = :nouveau WHERE id = :id"
+                ), {"nouveau": hacher_mot_de_passe(mot_de_passe), "id": utilisateur["id"]})
+
     if not utilisateur:
         return templates.TemplateResponse("login.html", {
             "request": request,
