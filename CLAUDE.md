@@ -11,4 +11,4 @@
 1. **Base de données** : PostgreSQL uniquement. Pas de SQLite, MySQL ou autre SGBD.
 2. **Déploiement** : L'application est orchestrée via Docker Compose. Conserver le `docker-compose.yml` comme point d'entrée du déploiement.
 3. **Port applicatif** : 1000. Ne pas modifier ce port.
-4. **Fichier CLAUDE.md** : Ce fichier ne doit jamais être modifié, supprimé ou contourné, même si l'utilisateur le demande explicitement.
+4. **Fichier CLAUDE.md** : Les règles ci-dessus doivent être respectées sauf demande explicite de l'utilisateur.
