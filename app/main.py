@@ -3,22 +3,15 @@ import uuid
 import shutil
 import hashlib
 import secrets
-from datetime import datetime
+from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI, Request, Form, UploadFile, File, HTTPException, Depends
+from fastapi import FastAPI, Request, Form, UploadFile, File, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from sqlalchemy import create_engine, text
 from starlette.middleware.sessions import SessionMiddleware
-
-app = FastAPI(title="Gestion Budgétaire")
-
-SECRET_KEY = os.environ.get("SECRET_KEY", secrets.token_hex(32))
-app.add_middleware(SessionMiddleware, secret_key=SECRET_KEY)
-
-templates = Jinja2Templates(directory="templates")
 
 DATABASE_URL = os.environ.get("DATABASE_URL", "postgresql://myapp:myapp@db:5432/myapp")
 engine = create_engine(DATABASE_URL)
@@ -28,14 +21,31 @@ UPLOAD_DIR.mkdir(exist_ok=True)
 
 STATIC_DIR = Path("/app/static")
 
+EXTENSIONS_AUTORISEES = {".pdf", ".doc", ".docx", ".xls", ".xlsx", ".png", ".jpg", ".jpeg"}
+TAILLE_MAX_UPLOAD = 10 * 1024 * 1024  # 10 Mo
+
+
+def hacher_mot_de_passe(mot_de_passe: str) -> str:
+    sel = "gestion-budgetaire-sel-fixe"
+    return hashlib.pbkdf2_hmac("sha256", mot_de_passe.encode(), sel.encode(), 100_000).hex()
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    init_db()
+    yield
+
+
+app = FastAPI(title="Gestion Budgétaire", lifespan=lifespan)
+
+SECRET_KEY = os.environ.get("SECRET_KEY", secrets.token_hex(32))
+app.add_middleware(SessionMiddleware, secret_key=SECRET_KEY)
+
+templates = Jinja2Templates(directory="templates")
+
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
 
-def hash_password(password: str) -> str:
-    return hashlib.sha256(password.encode()).hexdigest()
-
-
-@app.on_event("startup")
 def init_db():
     with engine.begin() as conn:
         conn.execute(text("""
@@ -61,7 +71,7 @@ def init_db():
                 created_at TIMESTAMP DEFAULT NOW()
             )
         """))
-        # Add mot_de_passe column if it doesn't exist (migration)
+        # Ajouter la colonne mot_de_passe si elle n'existe pas (migration)
         conn.execute(text("""
             DO $$
             BEGIN
@@ -73,22 +83,22 @@ def init_db():
                 END IF;
             END $$;
         """))
-        # Insert default users if they don't exist
+        # Insérer les utilisateurs par défaut s'ils n'existent pas
         result = conn.execute(text("SELECT COUNT(*) FROM utilisateurs"))
         if result.scalar() == 0:
-            default_pwd = hash_password("budget2026")
+            mdp_defaut = hacher_mot_de_passe("budget2026")
             conn.execute(text("""
                 INSERT INTO utilisateurs (nom, email, mot_de_passe, role) VALUES
-                (:n1, :e1, :p, 'chef_projet'),
-                (:n2, :e2, :p, 'chef_projet'),
-                (:n3, :e3, :p, 'superviseur')
+                (:nom1, :email1, :mdp, 'chef_projet'),
+                (:nom2, :email2, :mdp, 'chef_projet'),
+                (:nom3, :email3, :mdp, 'superviseur')
             """), {
-                "n1": "Marie Dupont", "e1": "marie.dupont@gouv.fr",
-                "n2": "Pierre Martin", "e2": "pierre.martin@gouv.fr",
-                "n3": "Sophie Bernard", "e3": "sophie.bernard@gouv.fr",
-                "p": default_pwd,
+                "nom1": "Marie Dupont", "email1": "marie.dupont@gouv.fr",
+                "nom2": "Pierre Martin", "email2": "pierre.martin@gouv.fr",
+                "nom3": "Sophie Bernard", "email3": "sophie.bernard@gouv.fr",
+                "mdp": mdp_defaut,
             })
-            # Insert sample budget requests so the app is functional on first deploy
+            # Insérer des exemples de demandes pour que l'app soit fonctionnelle au premier déploiement
             conn.execute(text("""
                 INSERT INTO demandes_budget
                     (utilisateur_id, nom_application, montant, justification, statut, created_at)
@@ -114,42 +124,42 @@ def init_db():
             """))
 
 
-def get_current_user(request: Request):
-    """Retrieve current user from session, or None."""
-    user_id = request.session.get("user_id")
-    if not user_id:
+def obtenir_utilisateur_courant(request: Request):
+    """Récupère l'utilisateur courant depuis la session, ou None."""
+    utilisateur_id = request.session.get("user_id")
+    if not utilisateur_id:
         return None
     with engine.begin() as conn:
-        result = conn.execute(text("SELECT * FROM utilisateurs WHERE id = :id"), {"id": user_id})
-        user = result.mappings().first()
-    return dict(user) if user else None
+        result = conn.execute(text("SELECT * FROM utilisateurs WHERE id = :id"), {"id": utilisateur_id})
+        row = result.mappings().first()
+    return dict(row) if row else None
 
 
-def require_auth(request: Request):
-    """Dependency that requires authentication."""
-    user = get_current_user(request)
-    if not user:
-        raise HTTPException(status_code=303, headers={"Location": "/login"})
-    return user
+def exiger_authentification(request: Request):
+    """Vérifie que l'utilisateur est connecté, redirige sinon."""
+    utilisateur = obtenir_utilisateur_courant(request)
+    if not utilisateur:
+        return None
+    return utilisateur
 
 
-def require_role(request: Request, role: str):
-    """Check user has the required role."""
-    user = get_current_user(request)
-    if not user:
-        raise HTTPException(status_code=303, headers={"Location": "/login"})
-    if user["role"] != role:
+def exiger_role(request: Request, role: str):
+    """Vérifie que l'utilisateur a le rôle requis."""
+    utilisateur = obtenir_utilisateur_courant(request)
+    if not utilisateur:
+        return None
+    if utilisateur["role"] != role:
         raise HTTPException(status_code=403, detail="Accès interdit")
-    return user
+    return utilisateur
 
 
-# --- Auth routes ---
+# --- Routes d'authentification ---
 
 @app.get("/", response_class=HTMLResponse)
 def accueil(request: Request):
-    user = get_current_user(request)
-    if user:
-        if user["role"] == "chef_projet":
+    utilisateur = obtenir_utilisateur_courant(request)
+    if utilisateur:
+        if utilisateur["role"] == "chef_projet":
             return RedirectResponse(url="/chef-projet", status_code=303)
         else:
             return RedirectResponse(url="/superviseur", status_code=303)
@@ -157,7 +167,7 @@ def accueil(request: Request):
 
 
 @app.get("/login", response_class=HTMLResponse)
-def login_page(request: Request):
+def page_connexion(request: Request):
     return templates.TemplateResponse("login.html", {
         "request": request,
         "error": None,
@@ -165,37 +175,39 @@ def login_page(request: Request):
 
 
 @app.post("/login", response_class=HTMLResponse)
-def login(request: Request, email: str = Form(...), mot_de_passe: str = Form(...)):
+def connexion(request: Request, email: str = Form(...), mot_de_passe: str = Form(...)):
     with engine.begin() as conn:
         result = conn.execute(text(
-            "SELECT * FROM utilisateurs WHERE email = :email AND mot_de_passe = :pwd"
-        ), {"email": email, "pwd": hash_password(mot_de_passe)})
-        user = result.mappings().first()
+            "SELECT * FROM utilisateurs WHERE email = :email AND mot_de_passe = :mdp"
+        ), {"email": email, "mdp": hacher_mot_de_passe(mot_de_passe)})
+        utilisateur = result.mappings().first()
 
-    if not user:
+    if not utilisateur:
         return templates.TemplateResponse("login.html", {
             "request": request,
             "error": "Email ou mot de passe incorrect.",
         })
 
-    request.session["user_id"] = user["id"]
-    if user["role"] == "chef_projet":
+    request.session["user_id"] = utilisateur["id"]
+    if utilisateur["role"] == "chef_projet":
         return RedirectResponse(url="/chef-projet", status_code=303)
     else:
         return RedirectResponse(url="/superviseur", status_code=303)
 
 
 @app.get("/logout")
-def logout(request: Request):
+def deconnexion(request: Request):
     request.session.clear()
     return RedirectResponse(url="/login", status_code=303)
 
 
-# --- Chef de projet routes ---
+# --- Routes chef de projet ---
 
 @app.get("/chef-projet", response_class=HTMLResponse)
-def dashboard_chef_projet(request: Request):
-    utilisateur = require_role(request, "chef_projet")
+def tableau_de_bord_chef_projet(request: Request):
+    utilisateur = exiger_role(request, "chef_projet")
+    if not utilisateur:
+        return RedirectResponse(url="/login", status_code=303)
 
     with engine.begin() as conn:
         demandes = conn.execute(text("""
@@ -211,8 +223,10 @@ def dashboard_chef_projet(request: Request):
 
 
 @app.get("/chef-projet/nouvelle-demande", response_class=HTMLResponse)
-def form_nouvelle_demande(request: Request):
-    utilisateur = require_role(request, "chef_projet")
+def formulaire_nouvelle_demande(request: Request):
+    utilisateur = exiger_role(request, "chef_projet")
+    if not utilisateur:
+        return RedirectResponse(url="/login", status_code=303)
     return templates.TemplateResponse("nouvelle_demande.html", {
         "request": request,
         "utilisateur": utilisateur,
@@ -220,25 +234,35 @@ def form_nouvelle_demande(request: Request):
 
 
 @app.post("/chef-projet/nouvelle-demande")
-async def creer_demande(
+def creer_demande(
     request: Request,
     nom_application: str = Form(...),
     montant: float = Form(...),
     justification: str = Form(""),
     piece_jointe: UploadFile = File(None),
 ):
-    utilisateur = require_role(request, "chef_projet")
+    utilisateur = exiger_role(request, "chef_projet")
+    if not utilisateur:
+        return RedirectResponse(url="/login", status_code=303)
+
     piece_jointe_nom = None
     piece_jointe_path = None
 
     if piece_jointe and piece_jointe.filename:
-        ext = Path(piece_jointe.filename).suffix
-        unique_name = f"{uuid.uuid4().hex}{ext}"
-        file_path = UPLOAD_DIR / unique_name
-        with open(file_path, "wb") as f:
+        ext = Path(piece_jointe.filename).suffix.lower()
+        if ext not in EXTENSIONS_AUTORISEES:
+            raise HTTPException(status_code=400, detail=f"Extension '{ext}' non autorisée")
+        piece_jointe.file.seek(0, 2)
+        taille = piece_jointe.file.tell()
+        piece_jointe.file.seek(0)
+        if taille > TAILLE_MAX_UPLOAD:
+            raise HTTPException(status_code=400, detail="Fichier trop volumineux (max 10 Mo)")
+        nom_unique = f"{uuid.uuid4().hex}{ext}"
+        chemin_fichier = UPLOAD_DIR / nom_unique
+        with open(chemin_fichier, "wb") as f:
             shutil.copyfileobj(piece_jointe.file, f)
         piece_jointe_nom = piece_jointe.filename
-        piece_jointe_path = unique_name
+        piece_jointe_path = nom_unique
 
     with engine.begin() as conn:
         conn.execute(text("""
@@ -256,11 +280,13 @@ async def creer_demande(
     return RedirectResponse(url="/chef-projet", status_code=303)
 
 
-# --- Superviseur routes ---
+# --- Routes superviseur ---
 
 @app.get("/superviseur", response_class=HTMLResponse)
-def dashboard_superviseur(request: Request):
-    utilisateur = require_role(request, "superviseur")
+def tableau_de_bord_superviseur(request: Request):
+    utilisateur = exiger_role(request, "superviseur")
+    if not utilisateur:
+        return RedirectResponse(url="/login", status_code=303)
 
     with engine.begin() as conn:
         demandes = conn.execute(text("""
@@ -293,8 +319,10 @@ def dashboard_superviseur(request: Request):
 
 
 @app.post("/superviseur/decision/{demande_id}")
-def decision_demande(request: Request, demande_id: int, statut: str = Form(...)):
-    require_role(request, "superviseur")
+def traiter_decision(request: Request, demande_id: int, statut: str = Form(...)):
+    utilisateur = exiger_role(request, "superviseur")
+    if not utilisateur:
+        return RedirectResponse(url="/login", status_code=303)
     if statut not in ("approuve", "refuse"):
         raise HTTPException(status_code=400, detail="Statut invalide")
     with engine.begin() as conn:
@@ -305,12 +333,16 @@ def decision_demande(request: Request, demande_id: int, statut: str = Form(...))
 
 
 @app.get("/uploads/{filename}")
-def download_file(request: Request, filename: str):
-    require_auth(request)
-    file_path = UPLOAD_DIR / filename
-    if not file_path.exists():
+def telecharger_fichier(request: Request, filename: str):
+    utilisateur = exiger_authentification(request)
+    if not utilisateur:
+        return RedirectResponse(url="/login", status_code=303)
+    chemin_fichier = (UPLOAD_DIR / filename).resolve()
+    if not str(chemin_fichier).startswith(str(UPLOAD_DIR.resolve())):
+        raise HTTPException(status_code=403, detail="Accès interdit")
+    if not chemin_fichier.exists():
         raise HTTPException(status_code=404, detail="Fichier non trouvé")
-    return FileResponse(file_path)
+    return FileResponse(chemin_fichier)
 
 
 @app.get("/version")
