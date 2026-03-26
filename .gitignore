@@ -1,2 +1,7 @@
 .vault_pass.txt
 *.retry
+node_modules/
+package-lock.json
+app/static/dsfr/
+__pycache__/
+*.pyc

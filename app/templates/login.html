@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Connexion - Gestion Budgétaire{% endblock %}
+
+{% block content %}
+<div class="fr-container fr-py-8w">
+    <div class="fr-grid-row fr-grid-row--center">
+        <div class="fr-col-12 fr-col-md-6 fr-col-lg-4">
+            <h1 class="fr-mb-4w">Connexion</h1>
+
+            {% if error %}
+            <div class="fr-alert fr-alert--error fr-mb-3w">
+                <p>{{ error }}</p>
+            </div>
+            {% endif %}
+
+            <form method="post" action="/login">
+                <div class="fr-input-group fr-mb-3w">
+                    <label class="fr-label" for="email">Adresse email</label>
+                    <input class="fr-input" type="email" id="email" name="email" required autofocus>
+                </div>
+
+                <div class="fr-input-group fr-mb-4w">
+                    <label class="fr-label" for="mot_de_passe">Mot de passe</label>
+                    <input class="fr-input" type="password" id="mot_de_passe" name="mot_de_passe" required>
+                </div>
+
+                <button class="fr-btn" type="submit">Se connecter</button>
+            </form>
+
+            <div class="fr-callout fr-mt-4w">
+                <h3 class="fr-callout__title">Comptes de démonstration</h3>
+                <p class="fr-callout__text">
+                    <strong>Chefs de projet :</strong><br>
+                    marie.dupont@gouv.fr / budget2026<br>
+                    pierre.martin@gouv.fr / budget2026<br><br>
+                    <strong>Superviseur :</strong><br>
+                    sophie.bernard@gouv.fr / budget2026
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

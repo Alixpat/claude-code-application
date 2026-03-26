@@ -9,7 +9,7 @@
                 <span class="fr-btn fr-btn--tertiary-no-outline" disabled>{{ utilisateur.nom }} (Superviseur)</span>
             </li>
             <li>
-                <a class="fr-btn fr-btn--tertiary-no-outline" href="/">Déconnexion</a>
+                <a class="fr-btn fr-btn--tertiary-no-outline" href="/logout">Déconnexion</a>
             </li>
         </ul>
     </div>
@@ -131,11 +131,11 @@
                     <td>{{ d.created_at.strftime('%d/%m/%Y') }}</td>
                     <td>
                         {% if d.statut == 'en_attente' %}
-                        <form method="post" action="/superviseur/{{ utilisateur.id }}/decision/{{ d.id }}" style="display:inline;">
+                        <form method="post" action="/superviseur/decision/{{ d.id }}" style="display:inline;">
                             <input type="hidden" name="statut" value="approuve">
                             <button type="submit" class="fr-btn fr-btn--sm fr-btn--secondary">Approuver</button>
                         </form>
-                        <form method="post" action="/superviseur/{{ utilisateur.id }}/decision/{{ d.id }}" style="display:inline; margin-left:0.5rem;">
+                        <form method="post" action="/superviseur/decision/{{ d.id }}" style="display:inline; margin-left:0.5rem;">
                             <input type="hidden" name="statut" value="refuse">
                             <button type="submit" class="fr-btn fr-btn--sm fr-btn--tertiary">Refuser</button>
                         </form>

@@ -9,7 +9,7 @@
                 <span class="fr-btn fr-btn--tertiary-no-outline" disabled>{{ utilisateur.nom }}</span>
             </li>
             <li>
-                <a class="fr-btn fr-btn--tertiary-no-outline" href="/">Déconnexion</a>
+                <a class="fr-btn fr-btn--tertiary-no-outline" href="/logout">Déconnexion</a>
             </li>
         </ul>
     </div>
@@ -20,7 +20,7 @@
 <div class="fr-container fr-py-6w">
     <div class="fr-grid-row fr-grid-row--center">
         <div class="fr-col-12 fr-col-md-8">
-            <a class="fr-link fr-link--icon-left fr-icon-arrow-left-line fr-mb-3w" href="/chef-projet/{{ utilisateur.id }}">
+            <a class="fr-link fr-link--icon-left fr-icon-arrow-left-line fr-mb-3w" href="/chef-projet">
                 Retour à mes demandes
             </a>
 
@@ -63,7 +63,7 @@
                     <button class="fr-btn" type="submit">
                         Soumettre la demande
                     </button>
-                    <a class="fr-btn fr-btn--secondary" href="/chef-projet/{{ utilisateur.id }}">
+                    <a class="fr-btn fr-btn--secondary" href="/chef-projet">
                         Annuler
                     </a>
                 </div>
