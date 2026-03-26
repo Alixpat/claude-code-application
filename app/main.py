@@ -83,6 +83,14 @@ def init_db():
                 END IF;
             END $$;
         """))
+        # Migrer les mots de passe de l'ancien hash (sha256) vers le nouveau (pbkdf2)
+        ancien_hash = hashlib.sha256("budget2026".encode()).hexdigest()
+        nouveau_hash = hacher_mot_de_passe("budget2026")
+        conn.execute(text("""
+            UPDATE utilisateurs SET mot_de_passe = :nouveau
+            WHERE mot_de_passe = :ancien
+        """), {"ancien": ancien_hash, "nouveau": nouveau_hash})
+
         # Insérer les utilisateurs par défaut s'ils n'existent pas
         result = conn.execute(text("SELECT COUNT(*) FROM utilisateurs"))
         if result.scalar() == 0:
