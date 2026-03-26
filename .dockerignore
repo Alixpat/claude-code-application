@@ -1,0 +1,25 @@
+# Source maps (not needed in production)
+app/static/dsfr/dsfr.min.css.map
+
+# Unused DSFR icon packs (only system/ is needed for fr-icon-arrow-left-line)
+app/static/dsfr/icons/editor/
+app/static/dsfr/icons/logo/
+app/static/dsfr/icons/user/
+app/static/dsfr/icons/development/
+app/static/dsfr/icons/business/
+app/static/dsfr/icons/design/
+app/static/dsfr/icons/document/
+app/static/dsfr/icons/finance/
+app/static/dsfr/icons/buildings/
+app/static/dsfr/icons/media/
+app/static/dsfr/icons/others/
+app/static/dsfr/icons/health/
+app/static/dsfr/icons/map/
+app/static/dsfr/icons/weather/
+app/static/dsfr/icons/communication/
+app/static/dsfr/icons/device/
+
+# Dev / Git files
+.git
+node_modules
+*.md
