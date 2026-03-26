@@ -88,6 +88,30 @@ def init_db():
                 "n3": "Sophie Bernard", "e3": "sophie.bernard@gouv.fr",
                 "p": default_pwd,
             })
+            # Insert sample budget requests so the app is functional on first deploy
+            conn.execute(text("""
+                INSERT INTO demandes_budget
+                    (utilisateur_id, nom_application, montant, justification, statut, created_at)
+                VALUES
+                    (1, 'Portail Usagers v2', 45000.00,
+                     'Refonte complète du portail usagers pour mise en conformité RGAA et amélioration de l''expérience utilisateur.',
+                     'approuve', '2026-01-15 10:30:00'),
+                    (1, 'API DataGouv Connecteur', 12500.00,
+                     'Développement d''un connecteur API pour synchroniser les données avec data.gouv.fr.',
+                     'en_attente', '2026-02-20 14:00:00'),
+                    (1, 'Migration Cloud Sécurisé', 78000.00,
+                     'Migration de l''infrastructure vers le cloud SecNumCloud pour conformité hébergement données sensibles.',
+                     'en_attente', '2026-03-10 09:15:00'),
+                    (2, 'Outil de Reporting Interne', 23000.00,
+                     'Tableau de bord de suivi des indicateurs de performance pour la direction.',
+                     'refuse', '2026-01-28 11:00:00'),
+                    (2, 'Application Mobile Agents', 56000.00,
+                     'Application mobile pour les agents terrain permettant la saisie de données en mobilité.',
+                     'approuve', '2026-02-05 16:45:00'),
+                    (2, 'Système de GED', 34500.00,
+                     'Mise en place d''un système de gestion électronique des documents pour dématérialiser les processus.',
+                     'en_attente', '2026-03-18 08:30:00')
+            """))
 
 
 def get_current_user(request: Request):
