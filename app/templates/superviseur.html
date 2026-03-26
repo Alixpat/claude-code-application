@@ -104,38 +104,38 @@
                 </tr>
             </thead>
             <tbody>
-                {% for d in demandes %}
+                {% for demande in demandes %}
                 <tr>
-                    <td>{{ d.demandeur_nom }}</td>
-                    <td>{{ d.nom_application }}</td>
-                    <td>{{ "{:,.2f}".format(d.montant) }} €</td>
-                    <td>{{ d.justification[:60] }}{% if d.justification and d.justification|length > 60 %}…{% endif %}</td>
+                    <td>{{ demande.demandeur_nom }}</td>
+                    <td>{{ demande.nom_application }}</td>
+                    <td>{{ "{:,.2f}".format(demande.montant) }} €</td>
+                    <td>{{ demande.justification[:80] if demande.justification else "—" }}{% if demande.justification and demande.justification|length > 80 %}…{% endif %}</td>
                     <td>
-                        {% if d.piece_jointe_path %}
-                        <a href="/uploads/{{ d.piece_jointe_path }}" target="_blank" class="fr-link">
-                            {{ d.piece_jointe_nom }}
+                        {% if demande.piece_jointe_path %}
+                        <a href="/uploads/{{ demande.piece_jointe_path }}" target="_blank" class="fr-link">
+                            {{ demande.piece_jointe_nom }}
                         </a>
                         {% else %}
                         —
                         {% endif %}
                     </td>
                     <td>
-                        {% if d.statut == 'en_attente' %}
+                        {% if demande.statut == 'en_attente' %}
                         <p class="fr-badge fr-badge--info">En attente</p>
-                        {% elif d.statut == 'approuve' %}
+                        {% elif demande.statut == 'approuve' %}
                         <p class="fr-badge fr-badge--success">Approuvé</p>
                         {% else %}
                         <p class="fr-badge fr-badge--error">Refusé</p>
                         {% endif %}
                     </td>
-                    <td>{{ d.created_at.strftime('%d/%m/%Y') }}</td>
+                    <td>{{ demande.created_at.strftime('%d/%m/%Y') }}</td>
                     <td>
-                        {% if d.statut == 'en_attente' %}
-                        <form method="post" action="/superviseur/decision/{{ d.id }}" style="display:inline;">
+                        {% if demande.statut == 'en_attente' %}
+                        <form method="post" action="/superviseur/decision/{{ demande.id }}" style="display:inline;">
                             <input type="hidden" name="statut" value="approuve">
                             <button type="submit" class="fr-btn fr-btn--sm fr-btn--secondary">Approuver</button>
                         </form>
-                        <form method="post" action="/superviseur/decision/{{ d.id }}" style="display:inline; margin-left:0.5rem;">
+                        <form method="post" action="/superviseur/decision/{{ demande.id }}" style="display:inline; margin-left:0.5rem;">
                             <input type="hidden" name="statut" value="refuse">
                             <button type="submit" class="fr-btn fr-btn--sm fr-btn--tertiary">Refuser</button>
                         </form>
