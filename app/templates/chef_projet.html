@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}Mes demandes - {{ utilisateur.nom }}{% endblock %}
+
+{% block header_tools %}
+<div class="fr-header__tools">
+    <div class="fr-header__tools-links">
+        <ul class="fr-btns-group">
+            <li>
+                <span class="fr-btn fr-btn--tertiary-no-outline" disabled>{{ utilisateur.nom }}</span>
+            </li>
+            <li>
+                <a class="fr-btn fr-btn--tertiary-no-outline" href="/logout">Déconnexion</a>
+            </li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="fr-container fr-py-6w">
+    <div class="fr-grid-row fr-grid-row--gutters">
+        <div class="fr-col-12">
+            <div class="fr-grid-row fr-grid-row--middle fr-mb-4w">
+                <div class="fr-col">
+                    <h1>Mes demandes de budget</h1>
+                </div>
+                <div class="fr-col-auto">
+                    <a class="fr-btn" href="/chef-projet/nouvelle-demande">
+                        Nouvelle demande
+                    </a>
+                </div>
+            </div>
+
+            {% if demandes %}
+            <div class="fr-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th scope="col">Application</th>
+                            <th scope="col">Montant</th>
+                            <th scope="col">Justification</th>
+                            <th scope="col">Pièce jointe</th>
+                            <th scope="col">Statut</th>
+                            <th scope="col">Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for d in demandes %}
+                        <tr>
+                            <td>{{ d.nom_application }}</td>
+                            <td>{{ "{:,.2f}".format(d.montant) }} €</td>
+                            <td>{{ d.justification[:80] }}{% if d.justification|length > 80 %}…{% endif %}</td>
+                            <td>
+                                {% if d.piece_jointe_path %}
+                                <a href="/uploads/{{ d.piece_jointe_path }}" target="_blank" class="fr-link">
+                                    {{ d.piece_jointe_nom }}
+                                </a>
+                                {% else %}
+                                —
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if d.statut == 'en_attente' %}
+                                <p class="fr-badge fr-badge--info">En attente</p>
+                                {% elif d.statut == 'approuve' %}
+                                <p class="fr-badge fr-badge--success">Approuvé</p>
+                                {% else %}
+                                <p class="fr-badge fr-badge--error">Refusé</p>
+                                {% endif %}
+                            </td>
+                            <td>{{ d.created_at.strftime('%d/%m/%Y') }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="fr-callout">
+                <h3 class="fr-callout__title">Aucune demande</h3>
+                <p class="fr-callout__text">Vous n'avez pas encore soumis de demande de budget. Cliquez sur "Nouvelle demande" pour commencer.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
