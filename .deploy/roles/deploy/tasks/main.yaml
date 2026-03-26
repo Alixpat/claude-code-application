@@ -5,20 +5,20 @@
     state: directory
     mode: "0755"
 
-- name: Copier les fichiers de l'application
-  ansible.builtin.copy:
-    src: "{{ item.src }}"
-    dest: "{{ deploy_path }}/{{ item.dest }}"
-    mode: "0644"
-  loop:
-    - { src: "{{ playbook_dir }}/../Dockerfile", dest: "Dockerfile" }
-    - { src: "{{ playbook_dir }}/../docker-compose.yml", dest: "docker-compose.yml" }
+- name: Créer l'archive compressée du livrable
+  delegate_to: localhost
+  ansible.builtin.archive:
+    path:
+      - "{{ playbook_dir }}/../Dockerfile"
+      - "{{ playbook_dir }}/../docker-compose.yml"
+      - "{{ playbook_dir }}/../app"
+    dest: /tmp/livrable.tar.gz
+    format: gz
 
-- name: Copier le répertoire app
-  ansible.builtin.copy:
-    src: "{{ playbook_dir }}/../app/"
-    dest: "{{ deploy_path }}/app/"
-    mode: "0644"
+- name: Transférer et décompresser le livrable
+  ansible.builtin.unarchive:
+    src: /tmp/livrable.tar.gz
+    dest: "{{ deploy_path }}/"
 
 - name: Créer le fichier .env pour docker compose
   ansible.builtin.copy:
