@@ -398,6 +398,11 @@ def telecharger_fichier(request: Request, filename: str):
     return FileResponse(chemin_fichier)
 
 
+@app.get("/health")
+def health():
+    return {"status": "ok"}
+
+
 @app.get("/version")
 def version():
     return {"version": "2.0.0", "status": "budget-management"}
